@@ -1,0 +1,9 @@
+{
+	"name": "adf-sdelavadiya",
+	"location": "eastus",
+	"identity": {
+		"type": "SystemAssigned",
+		"principalId": "92fc1284-2fce-4f9e-851c-b171376cf5a8",
+		"tenantId": "61993c37-46df-43d6-93f6-5e2d57896ca3"
+	}
+}
