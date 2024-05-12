@@ -187,7 +187,7 @@
 							"typeProperties": {
 								"variableName": "LastRunTimestamp",
 								"value": {
-									"value": "@first(activity('Get Metadata1').output).lastModified",
+									"value": "@activity('Get Metadata1').output.lastModified\n",
 									"type": "Expression"
 								}
 							}
