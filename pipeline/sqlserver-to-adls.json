@@ -169,6 +169,10 @@
 										"FolderName": {
 											"value": "@pipeline().parameters.TableName",
 											"type": "Expression"
+										},
+										"FileName": {
+											"value": "@coalesce(null)",
+											"type": "Expression"
 										}
 									}
 								},
