@@ -17,6 +17,10 @@
 				"typeProperties": {
 					"source": {
 						"type": "AzureSqlSource",
+						"sqlReaderQuery": {
+							"value": "select * from @pipeline().parameters.TableName;",
+							"type": "Expression"
+						},
 						"queryTimeout": "02:00:00",
 						"partitionOption": "None"
 					},
@@ -132,6 +136,10 @@
 				"typeProperties": {
 					"source": {
 						"type": "AzureSqlSource",
+						"sqlReaderQuery": {
+							"value": "select * from pipeline().parameters.TableName where order_date >= @variables('LastRunTimestamp');",
+							"type": "Expression"
+						},
 						"queryTimeout": "02:00:00",
 						"partitionOption": "None"
 					},
@@ -235,7 +243,8 @@
 		],
 		"parameters": {
 			"TableName": {
-				"type": "string"
+				"type": "string",
+				"defaultValue": "order"
 			}
 		},
 		"variables": {
