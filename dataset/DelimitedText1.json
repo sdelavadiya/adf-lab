@@ -18,6 +18,10 @@
 		"typeProperties": {
 			"location": {
 				"type": "AzureBlobFSLocation",
+				"fileName": {
+					"value": "@concat(dataset().FileName, '_', formatDateTime(utcnow(), 'yyyyMMddHHmmss'))\n",
+					"type": "Expression"
+				},
 				"folderPath": {
 					"value": "@dataset().FolderName",
 					"type": "Expression"
