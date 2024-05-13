@@ -36,7 +36,7 @@
 								"source": {
 									"type": "AzureSqlSource",
 									"sqlReaderQuery": {
-										"value": "@concat('select * from dbo.',pipeline().parameters.TableName,' where order_date >= ''',formatDateTime(variables('LastRunTimestamp'), 'yyyy-MM-dd HH:mm:ss'),'''')\n\n",
+										"value": "@concat('select * from dbo.',pipeline().parameters.TableName,' where ', pipeline().parameters.DeltaColumn, ' >= ''',formatDateTime(variables('LastRunTimestamp'), 'yyyy-MM-dd HH:mm:ss'),'''')\n\n",
 										"type": "Expression"
 									},
 									"queryTimeout": "02:00:00",
@@ -181,6 +181,7 @@
 								],
 								"storeSettings": {
 									"type": "AzureBlobFSReadSettings",
+									"recursive": true,
 									"enablePartitionDiscovery": false
 								},
 								"formatSettings": {
@@ -355,6 +356,10 @@
 			"LoadType": {
 				"type": "string",
 				"defaultValue": "Full"
+			},
+			"DeltaColumn": {
+				"type": "string",
+				"defaultValue": "order_date"
 			}
 		},
 		"variables": {
