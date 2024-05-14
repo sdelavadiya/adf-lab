@@ -1,0 +1,30 @@
+{
+	"name": "dev-sqlserver-to-adls",
+	"properties": {
+		"activities": [
+			{
+				"name": "Execute Pipeline1",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "sqlserver-to-adls",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"TableName": "orders",
+						"LoadType": "Full",
+						"DeltaColumn": "order_date",
+						"DbName": "favor"
+					}
+				}
+			}
+		],
+		"annotations": []
+	}
+}
