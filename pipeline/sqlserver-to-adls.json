@@ -216,7 +216,7 @@
 					],
 					"ifTrueActivities": [
 						{
-							"name": "Copy Full Load",
+							"name": "Copy Full Load data",
 							"type": "Copy",
 							"dependsOn": [],
 							"policy": {
