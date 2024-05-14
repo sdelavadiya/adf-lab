@@ -129,7 +129,13 @@
 							"inputs": [
 								{
 									"referenceName": "AzureSqlTable1",
-									"type": "DatasetReference"
+									"type": "DatasetReference",
+									"parameters": {
+										"DbName": {
+											"value": "@pipeline().parameters.DbName",
+											"type": "Expression"
+										}
+									}
 								}
 							],
 							"outputs": [
@@ -324,7 +330,13 @@
 							"inputs": [
 								{
 									"referenceName": "AzureSqlTable1",
-									"type": "DatasetReference"
+									"type": "DatasetReference",
+									"parameters": {
+										"DbName": {
+											"value": "@pipeline().parameters.DbName",
+											"type": "Expression"
+										}
+									}
 								}
 							],
 							"outputs": [
@@ -360,6 +372,10 @@
 			"DeltaColumn": {
 				"type": "string",
 				"defaultValue": "order_date"
+			},
+			"DbName": {
+				"type": "string",
+				"defaultValue": "favor"
 			}
 		},
 		"variables": {
