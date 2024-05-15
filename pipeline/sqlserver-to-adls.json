@@ -237,7 +237,7 @@
 								"source": {
 									"type": "AzureSqlSource",
 									"sqlReaderQuery": {
-										"value": "@concat('select WatermarkValue from dbo.watermarktable where TableName = ', pipeline().parameters.TableName)",
+										"value": "@concat('select watermarkvalue from dbo.watermarktable where TableName = ''', pipeline().parameters.TableName, '''')",
 										"type": "Expression"
 									},
 									"queryTimeout": "02:00:00",
