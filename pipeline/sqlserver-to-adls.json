@@ -174,7 +174,7 @@
 							"typeProperties": {
 								"variableName": "LastRunTimestamp",
 								"value": {
-									"value": "@activity('Lookup1').output",
+									"value": "@activity('Lookup1').output.firstRow.watermarkvalue",
 									"type": "Expression"
 								}
 							}
