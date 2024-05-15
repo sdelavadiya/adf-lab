@@ -390,7 +390,7 @@
 									{
 										"type": "Query",
 										"text": {
-											"value": "@concat('insert into watermarktable values (''', pipeline().parameters.TableName,'''',',', utcNow())",
+											"value": "@concat('insert into watermarktable values (''', pipeline().parameters.TableName,'''',',', utcNow(),')')",
 											"type": "Expression"
 										}
 									}
