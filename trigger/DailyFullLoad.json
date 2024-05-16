@@ -9,6 +9,12 @@
 					"referenceName": "dev-sqlserver-to-adls-orders",
 					"type": "PipelineReference"
 				}
+			},
+			{
+				"pipelineReference": {
+					"referenceName": "sqlserver-to-adls",
+					"type": "PipelineReference"
+				}
 			}
 		],
 		"type": "ScheduleTrigger",
