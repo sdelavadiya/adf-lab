@@ -260,14 +260,7 @@
 						{
 							"name": "Copy Full Load",
 							"type": "Copy",
-							"dependsOn": [
-								{
-									"activity": "MappingLookup",
-									"dependencyConditions": [
-										"Succeeded"
-									]
-								}
-							],
+							"dependsOn": [],
 							"policy": {
 								"timeout": "0.12:00:00",
 								"retry": 0,
@@ -298,11 +291,7 @@
 										"fileExtension": ".csv"
 									}
 								},
-								"enableStaging": false,
-								"translator": {
-									"value": "@activity('MappingLookup').output.firstRow",
-									"type": "Expression"
-								}
+								"enableStaging": false
 							},
 							"inputs": [
 								{
@@ -373,43 +362,6 @@
 									}
 								],
 								"scriptBlockExecutionTimeout": "02:00:00"
-							}
-						},
-						{
-							"name": "MappingLookup",
-							"type": "Lookup",
-							"dependsOn": [],
-							"policy": {
-								"timeout": "0.12:00:00",
-								"retry": 0,
-								"retryIntervalInSeconds": 30,
-								"secureOutput": false,
-								"secureInput": false
-							},
-							"userProperties": [],
-							"typeProperties": {
-								"source": {
-									"type": "DelimitedTextSource",
-									"storeSettings": {
-										"type": "AzureBlobFSReadSettings",
-										"recursive": true,
-										"enablePartitionDiscovery": false
-									},
-									"formatSettings": {
-										"type": "DelimitedTextReadSettings"
-									}
-								},
-								"dataset": {
-									"referenceName": "MappingJson",
-									"type": "DatasetReference",
-									"parameters": {
-										"FolderName": "mappings",
-										"FileName": {
-											"value": "@concat(pipeline().parameters.TableName,'.json')",
-											"type": "Expression"
-										}
-									}
-								}
 							}
 						}
 					]
