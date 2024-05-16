@@ -19,7 +19,7 @@
 			"location": {
 				"type": "AzureBlobFSLocation",
 				"fileName": {
-					"value": "@if(equals(dataset().FileName, null), null, concat(dataset().FileName, '_', formatDateTime(utcnow(), 'yyyyMMddHHmmss')))\n",
+					"value": "@if(equals(dataset().FileName, null), null, concat(dataset().FileName, '_', formatDateTime(utcnow(), 'yyyyMMddHHmmss'),'.csv'))\n",
 					"type": "Expression"
 				},
 				"folderPath": {
