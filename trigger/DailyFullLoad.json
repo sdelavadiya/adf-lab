@@ -1,0 +1,17 @@
+{
+	"name": "DailyFullLoad",
+	"properties": {
+		"annotations": [],
+		"runtimeState": "Stopped",
+		"pipelines": [],
+		"type": "ScheduleTrigger",
+		"typeProperties": {
+			"recurrence": {
+				"frequency": "Day",
+				"interval": 1,
+				"startTime": "2024-05-16T12:58:00",
+				"timeZone": "India Standard Time"
+			}
+		}
+	}
+}
