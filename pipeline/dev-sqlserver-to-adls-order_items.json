@@ -18,7 +18,7 @@
 					"waitOnCompletion": true,
 					"parameters": {
 						"TableName": "order_items",
-						"LoadType": "Full",
+						"LoadType": "Delta",
 						"DeltaColumn": "order_date",
 						"DbName": "favor"
 					}
