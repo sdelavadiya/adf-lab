@@ -1,5 +1,5 @@
 {
-	"name": "prod-sqlserver-to-adls",
+	"name": "prod-sqlserver-to-adls-orders",
 	"properties": {
 		"activities": [
 			{
