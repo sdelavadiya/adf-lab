@@ -23,7 +23,7 @@
 					"type": "Expression"
 				},
 				"folderPath": {
-					"value": "@dataset().FolderName",
+					"value": "@concat(dataset().FolderName)",
 					"type": "Expression"
 				},
 				"fileSystem": "sqlserver-files"

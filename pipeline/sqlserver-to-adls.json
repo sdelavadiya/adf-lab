@@ -82,7 +82,7 @@
 									"type": "DatasetReference",
 									"parameters": {
 										"FolderName": {
-											"value": "@pipeline().parameters.TableName",
+											"value": "@concat(pipeline().parameters.TableName,'/DELTA')",
 											"type": "Expression"
 										},
 										"FileName": {
@@ -249,7 +249,7 @@
 									"type": "DatasetReference",
 									"parameters": {
 										"FolderName": {
-											"value": "@pipeline().parameters.TableName",
+											"value": "@concat(pipeline().parameters.TableName,'/FULL')",
 											"type": "Expression"
 										},
 										"FileName": {
