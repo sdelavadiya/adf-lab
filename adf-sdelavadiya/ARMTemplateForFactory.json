@@ -46,7 +46,7 @@
 							"waitOnCompletion": true,
 							"parameters": {
 								"TableName": "orders",
-								"LoadType": "Full",
+								"LoadType": "Delta",
 								"DeltaColumn": "order_date",
 								"DbName": "favor"
 							}
@@ -161,68 +161,6 @@
 										"enableStaging": false,
 										"translator": {
 											"type": "TabularTranslator",
-											"mappings": [
-												{
-													"source": {
-														"name": "order_id",
-														"type": "Byte",
-														"physicalType": "tinyint"
-													},
-													"sink": {
-														"name": "order_id",
-														"type": "String",
-														"physicalType": "String"
-													}
-												},
-												{
-													"source": {
-														"name": "customer_id",
-														"type": "Byte",
-														"physicalType": "tinyint"
-													},
-													"sink": {
-														"name": "customer_id",
-														"type": "String",
-														"physicalType": "String"
-													}
-												},
-												{
-													"source": {
-														"name": "cart_id",
-														"type": "Byte",
-														"physicalType": "tinyint"
-													},
-													"sink": {
-														"name": "cart_id",
-														"type": "String",
-														"physicalType": "String"
-													}
-												},
-												{
-													"source": {
-														"name": "item_count",
-														"type": "Byte",
-														"physicalType": "tinyint"
-													},
-													"sink": {
-														"name": "item_count",
-														"type": "String",
-														"physicalType": "String"
-													}
-												},
-												{
-													"source": {
-														"name": "order_date",
-														"type": "DateTime",
-														"physicalType": "datetime2"
-													},
-													"sink": {
-														"name": "order_date",
-														"type": "String",
-														"physicalType": "String"
-													}
-												}
-											],
 											"typeConversion": true,
 											"typeConversionSettings": {
 												"allowDataTruncation": true,
@@ -248,7 +186,7 @@
 											"type": "DatasetReference",
 											"parameters": {
 												"FolderName": {
-													"value": "@pipeline().parameters.TableName",
+													"value": "@concat(pipeline().parameters.TableName,'/DELTA')",
 													"type": "Expression"
 												},
 												"FileName": {
@@ -264,7 +202,7 @@
 									"type": "SetVariable",
 									"dependsOn": [
 										{
-											"activity": "Lookup1",
+											"activity": "Delta-Lookup",
 											"dependencyConditions": [
 												"Succeeded"
 											]
@@ -278,7 +216,7 @@
 									"typeProperties": {
 										"variableName": "LastRunTimestamp",
 										"value": {
-											"value": "@activity('Lookup1').output.firstRow.watermarkvalue",
+											"value": "@activity('Delta-Lookup').output.firstRow.watermarkvalue",
 											"type": "Expression"
 										}
 									}
@@ -326,7 +264,7 @@
 									}
 								},
 								{
-									"name": "Lookup1",
+									"name": "Delta-Lookup",
 									"type": "Lookup",
 									"dependsOn": [],
 									"policy": {
@@ -395,77 +333,7 @@
 												"fileExtension": ".csv"
 											}
 										},
-										"enableStaging": false,
-										"translator": {
-											"type": "TabularTranslator",
-											"mappings": [
-												{
-													"source": {
-														"name": "order_id",
-														"type": "Byte",
-														"physicalType": "tinyint"
-													},
-													"sink": {
-														"name": "order_id",
-														"type": "String",
-														"physicalType": "String"
-													}
-												},
-												{
-													"source": {
-														"name": "customer_id",
-														"type": "Byte",
-														"physicalType": "tinyint"
-													},
-													"sink": {
-														"name": "customer_id",
-														"type": "String",
-														"physicalType": "String"
-													}
-												},
-												{
-													"source": {
-														"name": "cart_id",
-														"type": "Byte",
-														"physicalType": "tinyint"
-													},
-													"sink": {
-														"name": "cart_id",
-														"type": "String",
-														"physicalType": "String"
-													}
-												},
-												{
-													"source": {
-														"name": "item_count",
-														"type": "Byte",
-														"physicalType": "tinyint"
-													},
-													"sink": {
-														"name": "item_count",
-														"type": "String",
-														"physicalType": "String"
-													}
-												},
-												{
-													"source": {
-														"name": "order_date",
-														"type": "DateTime",
-														"physicalType": "datetime2"
-													},
-													"sink": {
-														"name": "order_date",
-														"type": "String",
-														"physicalType": "String"
-													}
-												}
-											],
-											"typeConversion": true,
-											"typeConversionSettings": {
-												"allowDataTruncation": true,
-												"treatBooleanAsNumber": false
-											}
-										}
+										"enableStaging": false
 									},
 									"inputs": [
 										{
@@ -485,7 +353,7 @@
 											"type": "DatasetReference",
 											"parameters": {
 												"FolderName": {
-													"value": "@pipeline().parameters.TableName",
+													"value": "@concat(pipeline().parameters.TableName,'/FULL')",
 													"type": "Expression"
 												},
 												"FileName": {
@@ -659,11 +527,11 @@
 					"location": {
 						"type": "AzureBlobFSLocation",
 						"fileName": {
-							"value": "@if(equals(dataset().FileName, null), null, concat(dataset().FileName, '_', formatDateTime(utcnow(), 'yyyyMMddHHmmss')))\n",
+							"value": "@if(equals(dataset().FileName, null), null, concat(dataset().FileName, '_', formatDateTime(utcnow(), 'yyyyMMddHHmmss'),'.csv'))\n",
 							"type": "Expression"
 						},
 						"folderPath": {
-							"value": "@dataset().FolderName",
+							"value": "@concat(dataset().FolderName)",
 							"type": "Expression"
 						},
 						"fileSystem": "sqlserver-files"
@@ -714,6 +582,44 @@
 				}
 			},
 			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/dev-sqlserver-to-adls-order_items')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "Execute Pipeline1",
+						"type": "ExecutePipeline",
+						"dependsOn": [],
+						"policy": {
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"pipeline": {
+								"referenceName": "sqlserver-to-adls",
+								"type": "PipelineReference"
+							},
+							"waitOnCompletion": true,
+							"parameters": {
+								"TableName": "order_items",
+								"LoadType": "Delta",
+								"DeltaColumn": "order_date",
+								"DbName": "favor"
+							}
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/pipelines/sqlserver-to-adls')]"
+			]
 		}
 	]
 }
