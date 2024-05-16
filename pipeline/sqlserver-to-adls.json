@@ -174,7 +174,7 @@
 							"typeProperties": {
 								"variableName": "LastRunTimestamp",
 								"value": {
-									"value": "@activity('Lookup1').output.firstRow.watermarkvalue",
+									"value": "@activity('Delta-Lookup').output.firstRow.watermarkvalue",
 									"type": "Expression"
 								}
 							}
@@ -260,7 +260,14 @@
 						{
 							"name": "Copy Full Load",
 							"type": "Copy",
-							"dependsOn": [],
+							"dependsOn": [
+								{
+									"activity": "MappingLookup",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
 							"policy": {
 								"timeout": "0.12:00:00",
 								"retry": 0,
@@ -293,74 +300,8 @@
 								},
 								"enableStaging": false,
 								"translator": {
-									"type": "TabularTranslator",
-									"mappings": [
-										{
-											"source": {
-												"name": "order_id",
-												"type": "Byte",
-												"physicalType": "tinyint"
-											},
-											"sink": {
-												"name": "order_id",
-												"type": "String",
-												"physicalType": "String"
-											}
-										},
-										{
-											"source": {
-												"name": "customer_id",
-												"type": "Byte",
-												"physicalType": "tinyint"
-											},
-											"sink": {
-												"name": "customer_id",
-												"type": "String",
-												"physicalType": "String"
-											}
-										},
-										{
-											"source": {
-												"name": "cart_id",
-												"type": "Byte",
-												"physicalType": "tinyint"
-											},
-											"sink": {
-												"name": "cart_id",
-												"type": "String",
-												"physicalType": "String"
-											}
-										},
-										{
-											"source": {
-												"name": "item_count",
-												"type": "Byte",
-												"physicalType": "tinyint"
-											},
-											"sink": {
-												"name": "item_count",
-												"type": "String",
-												"physicalType": "String"
-											}
-										},
-										{
-											"source": {
-												"name": "order_date",
-												"type": "DateTime",
-												"physicalType": "datetime2"
-											},
-											"sink": {
-												"name": "order_date",
-												"type": "String",
-												"physicalType": "String"
-											}
-										}
-									],
-									"typeConversion": true,
-									"typeConversionSettings": {
-										"allowDataTruncation": true,
-										"treatBooleanAsNumber": false
-									}
+									"value": "@activity('MappingLookup').output.firstRow",
+									"type": "Expression"
 								}
 							},
 							"inputs": [
@@ -432,6 +373,43 @@
 									}
 								],
 								"scriptBlockExecutionTimeout": "02:00:00"
+							}
+						},
+						{
+							"name": "MappingLookup",
+							"type": "Lookup",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "DelimitedTextSource",
+									"storeSettings": {
+										"type": "AzureBlobFSReadSettings",
+										"recursive": true,
+										"enablePartitionDiscovery": false
+									},
+									"formatSettings": {
+										"type": "DelimitedTextReadSettings"
+									}
+								},
+								"dataset": {
+									"referenceName": "MappingJson",
+									"type": "DatasetReference",
+									"parameters": {
+										"FolderName": "mappings",
+										"FileName": {
+											"value": "@concat(pipeline().parameters.TableName,'.json')",
+											"type": "Expression"
+										}
+									}
+								}
 							}
 						}
 					]
