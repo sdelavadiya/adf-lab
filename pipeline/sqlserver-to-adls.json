@@ -160,7 +160,7 @@
 							"type": "SetVariable",
 							"dependsOn": [
 								{
-									"activity": "Lookup1",
+									"activity": "Delta-Lookup",
 									"dependencyConditions": [
 										"Succeeded"
 									]
@@ -222,7 +222,7 @@
 							}
 						},
 						{
-							"name": "Lookup1",
+							"name": "Delta-Lookup",
 							"type": "Lookup",
 							"dependsOn": [],
 							"policy": {
