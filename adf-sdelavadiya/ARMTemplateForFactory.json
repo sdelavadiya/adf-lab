@@ -25,6 +25,82 @@
 	},
 	"resources": [
 		{
+			"name": "[concat(parameters('factoryName'), '/dev-sqlserver-to-adls')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "Execute Pipeline1",
+						"type": "ExecutePipeline",
+						"dependsOn": [],
+						"policy": {
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"pipeline": {
+								"referenceName": "sqlserver-to-adls",
+								"type": "PipelineReference"
+							},
+							"waitOnCompletion": true,
+							"parameters": {
+								"TableName": "orders",
+								"LoadType": "Full",
+								"DeltaColumn": "order_date",
+								"DbName": "favor"
+							}
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/pipelines/sqlserver-to-adls')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/prod-sqlserver-to-adls')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "Execute Pipeline1",
+						"type": "ExecutePipeline",
+						"dependsOn": [],
+						"policy": {
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"pipeline": {
+								"referenceName": "sqlserver-to-adls",
+								"type": "PipelineReference"
+							},
+							"waitOnCompletion": true,
+							"parameters": {
+								"TableName": "orders",
+								"LoadType": "Full",
+								"DeltaColumn": "order_date",
+								"DbName": "favor-prod"
+							}
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/pipelines/sqlserver-to-adls')]"
+			]
+		},
+		{
 			"name": "[concat(parameters('factoryName'), '/sqlserver-to-adls')]",
 			"type": "Microsoft.DataFactory/factories/pipelines",
 			"apiVersion": "2018-06-01",
@@ -64,7 +140,7 @@
 										"source": {
 											"type": "AzureSqlSource",
 											"sqlReaderQuery": {
-												"value": "@concat('select * from dbo.',pipeline().parameters.TableName,' where order_date >= ''',formatDateTime(variables('LastRunTimestamp'), 'yyyy-MM-dd HH:mm:ss'),'''')\n\n",
+												"value": "@concat('select * from dbo.',pipeline().parameters.TableName,' where ', pipeline().parameters.DeltaColumn, ' >= ''',formatDateTime(variables('LastRunTimestamp'), 'yyyy-MM-dd HH:mm:ss'),'''')\n\n",
 												"type": "Expression"
 											},
 											"queryTimeout": "02:00:00",
@@ -158,7 +234,12 @@
 										{
 											"referenceName": "AzureSqlTable1",
 											"type": "DatasetReference",
-											"parameters": {}
+											"parameters": {
+												"DbName": {
+													"value": "@pipeline().parameters.DbName",
+													"type": "Expression"
+												}
+											}
 										}
 									],
 									"outputs": [
@@ -179,51 +260,11 @@
 									]
 								},
 								{
-									"name": "Get Metadata1",
-									"type": "GetMetadata",
-									"dependsOn": [],
-									"policy": {
-										"timeout": "0.12:00:00",
-										"retry": 0,
-										"retryIntervalInSeconds": 30,
-										"secureOutput": false,
-										"secureInput": false
-									},
-									"userProperties": [],
-									"typeProperties": {
-										"dataset": {
-											"referenceName": "DelimitedText1",
-											"type": "DatasetReference",
-											"parameters": {
-												"FolderName": {
-													"value": "@pipeline().parameters.TableName",
-													"type": "Expression"
-												},
-												"FileName": {
-													"value": "@coalesce(null)",
-													"type": "Expression"
-												}
-											}
-										},
-										"fieldList": [
-											"lastModified"
-										],
-										"storeSettings": {
-											"type": "AzureBlobFSReadSettings",
-											"recursive": true,
-											"enablePartitionDiscovery": false
-										},
-										"formatSettings": {
-											"type": "DelimitedTextReadSettings"
-										}
-									}
-								},
-								{
 									"name": "Set variable1",
 									"type": "SetVariable",
 									"dependsOn": [
 										{
-											"activity": "Get Metadata1",
+											"activity": "Lookup1",
 											"dependencyConditions": [
 												"Succeeded"
 											]
@@ -237,8 +278,84 @@
 									"typeProperties": {
 										"variableName": "LastRunTimestamp",
 										"value": {
-											"value": "@activity('Get Metadata1').output.lastModified\n",
+											"value": "@activity('Lookup1').output.firstRow.watermarkvalue",
 											"type": "Expression"
+										}
+									}
+								},
+								{
+									"name": "Script_delta",
+									"type": "Script",
+									"dependsOn": [
+										{
+											"activity": "Copy Delta",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										}
+									],
+									"policy": {
+										"timeout": "0.12:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"linkedServiceName": {
+										"referenceName": "AzureSqlDatabase1",
+										"type": "LinkedServiceReference",
+										"parameters": {
+											"DbName": {
+												"value": "@pipeline().parameters.DbName",
+												"type": "Expression"
+											}
+										}
+									},
+									"typeProperties": {
+										"scripts": [
+											{
+												"type": "Query",
+												"text": {
+													"value": "@concat(\n    'UPDATE watermarktable SET WatermarkValue = ''',\n    formatDateTime(utcNow(), 'yyyy-MM-dd HH:mm:ss'),\n    ''' WHERE TableName = ''',\n    pipeline().parameters.TableName,\n    ''''\n)\n",
+													"type": "Expression"
+												}
+											}
+										],
+										"scriptBlockExecutionTimeout": "02:00:00"
+									}
+								},
+								{
+									"name": "Lookup1",
+									"type": "Lookup",
+									"dependsOn": [],
+									"policy": {
+										"timeout": "0.12:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"source": {
+											"type": "AzureSqlSource",
+											"sqlReaderQuery": {
+												"value": "@concat('select watermarkvalue from dbo.watermarktable where TableName = ''', pipeline().parameters.TableName, '''')",
+												"type": "Expression"
+											},
+											"queryTimeout": "02:00:00",
+											"partitionOption": "None"
+										},
+										"dataset": {
+											"referenceName": "AzureSqlTable1",
+											"type": "DatasetReference",
+											"parameters": {
+												"DbName": {
+													"value": "@pipeline().parameters.DbName",
+													"type": "Expression"
+												}
+											}
 										}
 									}
 								}
@@ -354,7 +471,12 @@
 										{
 											"referenceName": "AzureSqlTable1",
 											"type": "DatasetReference",
-											"parameters": {}
+											"parameters": {
+												"DbName": {
+													"value": "@pipeline().parameters.DbName",
+													"type": "Expression"
+												}
+											}
 										}
 									],
 									"outputs": [
@@ -373,6 +495,48 @@
 											}
 										}
 									]
+								},
+								{
+									"name": "Script1",
+									"type": "Script",
+									"dependsOn": [
+										{
+											"activity": "Copy Full Load",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										}
+									],
+									"policy": {
+										"timeout": "0.12:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"linkedServiceName": {
+										"referenceName": "AzureSqlDatabase1",
+										"type": "LinkedServiceReference",
+										"parameters": {
+											"DbName": {
+												"value": "@pipeline().parameters.DbName",
+												"type": "Expression"
+											}
+										}
+									},
+									"typeProperties": {
+										"scripts": [
+											{
+												"type": "Query",
+												"text": {
+													"value": "@concat(\n    'INSERT INTO watermarktable VALUES (''',\n    pipeline().parameters.TableName,\n    ''', ''',\n    formatDateTime(utcNow(), 'yyyy-MM-dd HH:mm:ss'),\n    ''')'\n)",
+													"type": "Expression"
+												}
+											}
+										],
+										"scriptBlockExecutionTimeout": "02:00:00"
+									}
 								}
 							]
 						}
@@ -389,6 +553,14 @@
 					"LoadType": {
 						"type": "string",
 						"defaultValue": "Full"
+					},
+					"DeltaColumn": {
+						"type": "string",
+						"defaultValue": "order_date"
+					},
+					"DbName": {
+						"type": "string",
+						"defaultValue": "favor"
 					}
 				},
 				"variables": {
@@ -401,7 +573,8 @@
 			},
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/datasets/AzureSqlTable1')]",
-				"[concat(variables('factoryId'), '/datasets/DelimitedText1')]"
+				"[concat(variables('factoryId'), '/datasets/DelimitedText1')]",
+				"[concat(variables('factoryId'), '/linkedServices/AzureSqlDatabase1')]"
 			]
 		},
 		{
@@ -411,7 +584,19 @@
 			"properties": {
 				"linkedServiceName": {
 					"referenceName": "AzureSqlDatabase1",
-					"type": "LinkedServiceReference"
+					"type": "LinkedServiceReference",
+					"parameters": {
+						"DbName": {
+							"value": "@dataset().DbName",
+							"type": "Expression"
+						}
+					}
+				},
+				"parameters": {
+					"DbName": {
+						"type": "string",
+						"defaultValue": "favor"
+					}
 				},
 				"annotations": [],
 				"type": "AzureSqlTable",
@@ -516,6 +701,12 @@
 			"type": "Microsoft.DataFactory/factories/linkedServices",
 			"apiVersion": "2018-06-01",
 			"properties": {
+				"parameters": {
+					"DbName": {
+						"type": "string",
+						"defaultValue": "favor"
+					}
+				},
 				"annotations": [],
 				"type": "AzureSqlDatabase",
 				"typeProperties": {
